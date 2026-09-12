@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>待辦清單看板 // TASK NEXUS KANBAN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background lighting -->
+  <div class="ambient-glow glow-top"></div>
+  <div class="ambient-glow glow-bottom"></div>
+
+  <div class="app-container">
+    <!-- Header / Status Bar -->
+    <header class="app-header">
+      <div class="header-badge">
+        <span class="status-indicator"></span>
+        <span class="sys-code">KANBAN PROTOCOL // ACTIVE</span>
+      </div>
+      <div class="header-main">
+        <h1 class="app-title">任務控制中心 <span class="title-sub">TASK NEXUS</span></h1>
+        <div class="date-badge" id="currentDate">--:--</div>
+      </div>
+
+      <!-- Stats Bar for 3 Columns -->
+      <div class="stats-bar">
+        <div class="stat-item stat-todo">
+          <span class="stat-label">待處理 (TO-DO)</span>
+          <span class="stat-value" id="todoCount">0</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item stat-process">
+          <span class="stat-label">進行中 (PROCESS)</span>
+          <span class="stat-value text-process" id="processCount">0</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item stat-done">
+          <span class="stat-label">已完成 (DONE)</span>
+          <span class="stat-value text-done" id="doneCount">0</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-label">總達成率</span>
+          <span class="stat-value text-accent" id="progressPercent">0%</span>
+        </div>
+      </div>
+
+      <!-- Progress Track -->
+      <div class="progress-track">
+        <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+      </div>
+    </header>
+
+    <!-- Task Creation Panel -->
+    <section class="panel-card input-panel">
+      <div class="panel-header">
+        <span class="panel-tag">[ 01 ]</span>
+        <span class="panel-title">建立新任務 // NEW ENTRY</span>
+      </div>
+
+      <form id="todoForm" class="todo-form">
+        <div class="form-row main-inputs">
+          <div class="input-group input-task">
+            <label for="taskTitle" class="input-label">任務描述</label>
+            <input 
+              type="text" 
+              id="taskTitle" 
+              class="cyber-input" 
+              placeholder="輸入待辦內容，例如：完成系統架構設計..." 
+              autocomplete="off"
+              required
+            >
+          </div>
+          
+          <div class="input-group input-assignee">
+            <label for="taskAssignee" class="input-label">負責人</label>
+            <div class="input-icon-wrapper">
+              <span class="input-icon">👤</span>
+              <input 
+                type="text" 
+                id="taskAssignee" 
+                class="cyber-input" 
+                placeholder="預設：本人" 
+                autocomplete="off"
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row action-row">
+          <div class="selectors-wrapper">
+            <div class="category-selector">
+              <span class="input-label">任務維度</span>
+              <div class="radio-toggle-group">
+                <label class="radio-pill work-pill">
+                  <input type="radio" name="taskCategory" value="work" checked>
+                  <span class="pill-content">
+                    <span class="dot"></span>
+                    工作 / WORK
+                  </span>
+                </label>
+                <label class="radio-pill life-pill">
+                  <input type="radio" name="taskCategory" value="life">
+                  <span class="pill-content">
+                    <span class="dot"></span>
+                    生活 / LIFE
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div class="priority-selector">
+              <span class="input-label">優先程度 (自動排序)</span>
+              <div class="radio-toggle-group">
+                <label class="radio-pill pri-high-pill">
+                  <input type="radio" name="taskPriority" value="high">
+                  <span class="pill-content">
+                    <span class="dot dot-high"></span>
+                    HIGH
+                  </span>
+                </label>
+                <label class="radio-pill pri-med-pill">
+                  <input type="radio" name="taskPriority" value="medium" checked>
+                  <span class="pill-content">
+                    <span class="dot dot-med"></span>
+                    MEDIUM
+                  </span>
+                </label>
+                <label class="radio-pill pri-low-pill">
+                  <input type="radio" name="taskPriority" value="low">
+                  <span class="pill-content">
+                    <span class="dot dot-low"></span>
+                    LOW
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-submit-group">
+            <button type="submit" class="btn-glow-submit" id="addBtn">
+              <span class="btn-text">+ 新增至待處理</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Category Filter Bar & Global Actions -->
+    <div class="kanban-toolbar">
+      <div class="filter-tabs">
+        <span class="toolbar-label">篩選維度：</span>
+        <button class="filter-tab active" data-filter="all">
+          全部 <span class="tab-badge" id="badgeAll">0</span>
+        </button>
+        <button class="filter-tab" data-filter="work">
+          <span class="tab-dot dot-work"></span> 工作 <span class="tab-badge" id="badgeWork">0</span>
+        </button>
+        <button class="filter-tab" data-filter="life">
+          <span class="tab-dot dot-life"></span> 生活 <span class="tab-badge" id="badgeLife">0</span>
+        </button>
+      </div>
+
+      <div class="toolbar-actions">
+        <button class="btn-ghost" id="clearDoneBtn" title="清除所有已完成的任務">
+          清除已完成 (Done)
+        </button>
+      </div>
+    </div>
+
+    <!-- 3-Column Kanban Board -->
+    <main class="kanban-board">
+      <!-- Column 1: To-do -->
+      <section class="kanban-col col-todo" data-col="todo">
+        <div class="col-header">
+          <div class="col-title-group">
+            <span class="col-indicator dot-todo"></span>
+            <h2 class="col-title">TO-DO</h2>
+            <span class="col-sub">待處理</span>
+          </div>
+          <span class="col-count-badge" id="colBadgeTodo">0</span>
+        </div>
+        <div class="col-divider"></div>
+        <ul class="kanban-column-list" id="listTodo" data-status="todo" aria-label="待處理清單">
+          <!-- Injected dynamically -->
+        </ul>
+        <div class="col-drop-hint">可將卡片拖曳至此</div>
+      </section>
+
+      <!-- Column 2: Process -->
+      <section class="kanban-col col-process" data-col="process">
+        <div class="col-header">
+          <div class="col-title-group">
+            <span class="col-indicator dot-process"></span>
+            <h2 class="col-title">PROCESS</h2>
+            <span class="col-sub">進行中</span>
+          </div>
+          <span class="col-count-badge" id="colBadgeProcess">0</span>
+        </div>
+        <div class="col-divider"></div>
+        <ul class="kanban-column-list" id="listProcess" data-status="process" aria-label="進行中清單">
+          <!-- Injected dynamically -->
+        </ul>
+        <div class="col-drop-hint">可將卡片拖曳至此</div>
+      </section>
+
+      <!-- Column 3: Done -->
+      <section class="kanban-col col-done" data-col="done">
+        <div class="col-header">
+          <div class="col-title-group">
+            <span class="col-indicator dot-done"></span>
+            <h2 class="col-title">DONE</h2>
+            <span class="col-sub">已完成</span>
+          </div>
+          <span class="col-count-badge" id="colBadgeDone">0</span>
+        </div>
+        <div class="col-divider"></div>
+        <ul class="kanban-column-list" id="listDone" data-status="done" aria-label="已完成清單">
+          <!-- Injected dynamically -->
+        </ul>
+        <div class="col-drop-hint">可將卡片拖曳至此</div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>WARM TECH KANBAN PROTOCOL // DRAG & DROP PERSISTENCE ENABLED</span>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
